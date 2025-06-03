@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain - Owner</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #1e293b;
+            --dark: #0f172a;
+            --light: #f1f5f9;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --text-light: #e2e8f0;
+            --text-dark: #1e293b;
+            --border: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        /* Header */
+        header {
+            background-color: var(--secondary);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--light);
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: var(--primary);
+        }
+        
+        .logo i {
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+        
+        /* Main Content */
+        main {
+            flex-grow: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--light);
+        }
+        
+        .dashboard-header p {
+            color: #94a3b8;
+        }
+        
+        /* Card Styling */
+        .card {
+            background-color: var(--secondary);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .card-header i {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+            color: var(--primary);
+        }
+        
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        /* Form Elements */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            flex: 1;
+            background-color: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            color: var(--light);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            color: white;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background-color: #059669;
+        }
+        
+        .btn-secondary {
+            background-color: #475569;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #334155;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            max-width: 300px;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            transform: translateY(-100%);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        
+        .notification.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .notification-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .notification-error {
+            background-color: var(--error);
+            color: white;
+        }
+        
+        /* Account Badge */
+        .account-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+        }
+        
+        .account-status {
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background-color: var(--success);
+            margin-right: 0.75rem;
+        }
+        
+        /* Debug Console */
+        .debug-console {
+            background-color: #0f172a;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            border: 1px solid #1e293b;
+        }
+        .custom-remove-btn {
+        background-color: #dc3545;     /* Đỏ Bootstrap */
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        }
+
+        .custom-remove-btn:hover {
+        background-color: #c82333;     /* Màu đỏ đậm khi hover */
+        }
+
+        .custom-remove-btn:disabled {
+        background-color: #999;
+        cursor: not-allowed;
+        }
+        .debug-message {
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .debug-success {
+            color: #34d399;
+        }
+        
+        .debug-error {
+            color: #f87171;
+        }
+        
+        .debug-info {
+            color: #93c5fd;
+        }
+        
+        /* Table Styling */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead th {
+            background-color: #1e293b;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            padding: 0.75rem 1.25rem;
+            text-align: left;
+        }
+        
+        tbody tr {
+            border-top: 1px solid #334155;
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        tbody td {
+            padding: 1rem 1.25rem;
+            color: #e2e8f0;
+        }
+        
+        .manager-badge {
+            display: inline-block;
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        
+        /* Loading Spinner */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--secondary);
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: auto;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        Notification message here
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo">
+                <i class="fas fa-cubes"></i>
+                <span>Supply</span>Chain<span>
+            </a>
+            <div class="account-container">
+                <div id="account-display" class="account-badge" style="display: none;">
+                    <div class="account-status"></div>
+                    <span id="account-address">0x0000...0000</span>
+                </div>
+                <button id="connect-wallet" class="btn btn-primary">
+                    <i class="fas fa-wallet"></i>
+                    Connect Wallet
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1>Owner</h1>
+            <p>Manage products and assign suppliers in your supply chain</p>
+        </div>
+
+        <!-- Contract Address Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-link"></i>
+                <h2>Contract Connection</h2>
+            </div>
+            <div class="input-group">
+                <input
+                    id="contract-address-input"
+                    type="text"
+                    placeholder="Smart Contract Address"
+                    class="flex-1"
+                />
+                <button id="set-address-btn" class="btn btn-primary" disabled>
+                    <i class="fas fa-save"></i>
+                    Set Address
+                </button>
+                <button id="verify-contract-btn" class="btn btn-success" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    Verify
+                </button>
+            </div>
+            <p class="text-sm text-gray-400">Current contract: <span id="current-contract-address">0x46b1e0df9d46de362576e41be3b3a52acdd21083</span></p>
+        </div>
+
+        <!-- Add Manager Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-plus"></i>
+                <h2>Add Supplier</h2>
+            </div>
+            <div class="input-group">
+                <input
+                    id="new-manager-input"
+                    type="text"
+                    placeholder="Supplier Ethereum Address"
+                    class="flex-1"
+                />
+                <button id="add-manager-btn" class="btn btn-primary" disabled>
+                    <i class="fas fa-plus"></i>
+                    Add Supplier
+                </button>
+            </div>
+        </div>
+        <!-- Managers List Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-users-cog"></i>
+                <h2>Supplier Management</h2>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <button id="refresh-managers-btn" class="btn btn-secondary" disabled>
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh Suppliers
+                </button>
+            </div>
+            <!-- Loading State -->
+            <div id="managers-loading" class="loading-container" style="display: none;">
+                <div class="spinner"></div>
+            </div>
+            <!-- Managers Table -->
+            <div id="managers-table-container" class="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Supplier Address</th>
+                        </tr>
+                    </thead>
+                    <tbody id="managers-table-body">
+                        <!-- Manager rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="managers-empty-message" class="empty-message">
+                No suppliers found. Add your first supplier to start managing your supply chain.
+            </div>
+        </div>
+
+        <!-- Product Inventory Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-boxes"></i>
+                <h2>Product Inventory</h2>
+            </div>
+            
+            <div class="flex justify-end mb-4">
+                <button id="refresh-products-btn" class="btn btn-secondary" disabled>
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="products-loading" class="loading-container" style="display: none;">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Products Table -->
+            <div id="products-table-container" class="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Supplier</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Product rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="products-empty-message" class="empty-message">
+                Connect your wallet to view products.
+            </div>
+        </div>
+        
+        <!-- Debug Console Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-terminal"></i>
+                <h2>Debug Console</h2>
+            </div>
+            <div id="debug-console" class="debug-console">
+                <div class="debug-message debug-info">System ready. Connect your wallet to begin.</div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>SupplyChain &copy; 2025 - Ethereum Smart Contract Management System</p>
+    </footer>
+
+    <script>
+        // Contract ABI
+        const contractAbi =[
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "DeliveryConfirmed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum SupplyChainSystem.DeliveryStage",
+				"name": "stage",
+				"type": "uint8"
+			}
+		],
+		"name": "DeliveryUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "ManagerAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "ManagerRemoved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "transporter",
+				"type": "address"
+			}
+		],
+		"name": "OrderApproved",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "customer",
+				"type": "address"
+			}
+		],
+		"name": "OrderPlaced",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "unitPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "ProductAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "Refunded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "target",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint8",
+				"name": "rating",
+				"type": "uint8"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "comment",
+				"type": "string"
+			}
+		],
+		"name": "ReviewSubmitted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "TransporterAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "TransporterRemoved",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "acceptQuotation",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "addManager",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unitPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "stock",
+				"type": "uint256"
+			}
+		],
+		"name": "addProduct",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "addTransporter",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unitPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "transporter",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "transportFee",
+				"type": "uint256"
+			}
+		],
+		"name": "approveOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "cancelOrder",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "confirmReceipt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "customerToRequests",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "deliveries",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "transporter",
+				"type": "address"
+			},
+			{
+				"internalType": "enum SupplyChainSystem.DeliveryStage",
+				"name": "stage",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllProducts",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "unitPrice",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stock",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.Product[]",
+				"name": "",
+				"type": "tuple[]"
+			},
+			{
+				"internalType": "address[]",
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAllRequests",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "id",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "supplier",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "productName",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "quantity",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "maxUnitPrice",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "deliveryAddress",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					},
+					{
+						"internalType": "enum SupplyChainSystem.RequestStatus",
+						"name": "status",
+						"type": "uint8"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.PurchaseRequest[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "customer",
+				"type": "address"
+			}
+		],
+		"name": "getCustomerRequests",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "getDelivery",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "transporter",
+						"type": "address"
+					},
+					{
+						"internalType": "enum SupplyChainSystem.DeliveryStage",
+						"name": "stage",
+						"type": "uint8"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.DeliveryInfo",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "getPayment",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "customer",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "supplier",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "transporter",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "supplierAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "transportFee",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "settled",
+						"type": "bool"
+					},
+					{
+						"internalType": "bool",
+						"name": "refunded",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.Payment",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			}
+		],
+		"name": "getSupplierProducts",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "name",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "unitPrice",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "stock",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.Product[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			}
+		],
+		"name": "getSupplierReviews",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint8",
+						"name": "rating",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "comment",
+						"type": "string"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.Review[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "transporter",
+				"type": "address"
+			}
+		],
+		"name": "getTransporterReviews",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint8",
+						"name": "rating",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "comment",
+						"type": "string"
+					}
+				],
+				"internalType": "struct SupplyChainSystem.Review[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "isManager",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "isTransporter",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint8",
+				"name": "rating",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "comment",
+				"type": "string"
+			}
+		],
+		"name": "leaveReview",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "offeredPrices",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "payments",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "customer",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "transporter",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "supplierAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "transportFee",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "settled",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "refunded",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "maxUnitPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "deliveryAddress",
+				"type": "string"
+			}
+		],
+		"name": "placeOrder",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			}
+		],
+		"name": "processRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "removeManager",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "removeTransporter",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "requests",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "customer",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "supplier",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "productName",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "maxUnitPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "deliveryAddress",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"internalType": "enum SupplyChainSystem.RequestStatus",
+				"name": "status",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unitPrice",
+				"type": "uint256"
+			}
+		],
+		"name": "sendQuotation",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "supplierProducts",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "unitPrice",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "stock",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "supplierReviews",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "rating",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "comment",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "suppliers",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "transporterReviews",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "rating",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "comment",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "requestId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "enum SupplyChainSystem.DeliveryStage",
+				"name": "stage",
+				"type": "uint8"
+			}
+		],
+		"name": "updateDeliveryStage",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+];
+
+        // Variables
+        // Variables
+        let contractAddress = '0x46b1e0df9d46de362576e41be3b3a52acdd21083';
+        let provider = null;
+        let signer = null;
+        let contract = null;
+        let account = '';
+        let isLoading = false;
+        let knownSuppliers = new Set();
+
+        // DOM Elements
+        const connectWalletBtn = document.getElementById('connect-wallet');
+        const accountDisplay = document.getElementById('account-display');
+        const accountAddress = document.getElementById('account-address');
+        const notification = document.getElementById('notification');
+        const contractAddressInput = document.getElementById('contract-address-input');
+        const setAddressBtn = document.getElementById('set-address-btn');
+        const verifyContractBtn = document.getElementById('verify-contract-btn');
+        const currentContractAddress = document.getElementById('current-contract-address');
+        const debugConsole = document.getElementById('debug-console');
+
+        const newManagerInput = document.getElementById('new-manager-input');
+        const addManagerBtn = document.getElementById('add-manager-btn');
+
+        const refreshManagersBtn = document.getElementById('refresh-managers-btn');
+        const managersLoading = document.getElementById('managers-loading');
+        const managersTableContainer = document.getElementById('managers-table-container');
+        const managersTableBody = document.getElementById('managers-table-body');
+        const managersEmptyMessage = document.getElementById('managers-empty-message');
+
+        const refreshProductsBtn = document.getElementById('refresh-products-btn');
+        const productsLoading = document.getElementById('products-loading');
+        const productsTableContainer = document.getElementById('products-table-container');
+        const productsTableBody = document.getElementById('products-table-body');
+        const productsEmptyMessage = document.getElementById('products-empty-message');
+
+        // Helper Functions
+        function truncateAddress(address) {
+            return address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '';
+        }
+
+        function showNotification(message, type) {
+            notification.textContent = message;
+            notification.className = `notification notification-${type} visible`;
+            
+            setTimeout(() => {
+                notification.classList.remove('visible');
+            }, 3000);
+        }
+
+        function addDebugMessage(message, type = 'info') {
+            if (debugConsole.querySelector('.debug-info') && 
+                debugConsole.querySelector('.debug-info').textContent === 'System ready. Connect your wallet to begin.') {
+                debugConsole.innerHTML = '';
+            }
+            
+            const msgElement = document.createElement('div');
+            msgElement.className = `debug-message debug-${type}`;
+            msgElement.textContent = message;
+            debugConsole.appendChild(msgElement);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        // Fixed updateProductsUI function
+        function updateProductsUI(products) {
+            productsTableBody.innerHTML = '';
+            
+            if (products.length === 0) {
+                productsTableContainer.style.display = 'none';
+                productsEmptyMessage.textContent = account && contract ? 
+                    'No products found for any suppliers.' : 
+                    (account ? 'Connect to a valid contract to view products.' : 'Connect your wallet to view products.');
+                productsEmptyMessage.style.display = 'block';
+                return;
+            }
+            
+            productsEmptyMessage.style.display = 'none';
+            productsTableContainer.style.display = 'block';
+            
+            products.forEach((product) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.unitPrice.toString()}</td>
+                    <td>${product.stock.toString()}</td>
+                    <td><span class="manager-badge">${truncateAddress(product.supplier)}</span></td>
+                `;
+                productsTableBody.appendChild(row);
+            });
+        }
+
+        function updateUIState() {
+            if (account) {
+                connectWalletBtn.style.display = 'none';
+                accountDisplay.style.display = 'flex';
+                accountAddress.textContent = truncateAddress(account);
+                
+                setAddressBtn.disabled = false;
+                
+                if (contract) {
+                    verifyContractBtn.disabled = false;
+                    addManagerBtn.disabled = false;
+                    refreshProductsBtn.disabled = false;
+                    refreshManagersBtn.disabled = false;
+                } else {
+                    verifyContractBtn.disabled = true;
+                    addManagerBtn.disabled = true;
+                    refreshProductsBtn.disabled = true;
+                    refreshManagersBtn.disabled = true;
+                }
+            } else {
+                connectWalletBtn.style.display = 'inline-flex';
+                accountDisplay.style.display = 'none';
+                
+                setAddressBtn.disabled = true;
+                verifyContractBtn.disabled = true;
+                addManagerBtn.disabled = true;
+                refreshProductsBtn.disabled = true;
+                refreshManagersBtn.disabled = true;
+            }
+        }
+
+        // Fixed connectWallet function
+        async function connectWallet() {
+            try {
+                connectWalletBtn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Connecting...`;
+                isLoading = true;
+
+                if (window.ethereum) {
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                        if (accounts.length > 0) {
+                            account = accounts[0];
+                            provider = new ethers.providers.Web3Provider(window.ethereum);
+                            signer = provider.getSigner();
+
+                            if (contractAddress) {
+                                initializeContract();
+                            }
+
+                            addDebugMessage(`Wallet connected: ${truncateAddress(account)}`, 'success');
+                            showNotification('Wallet connected successfully!', 'success');
+
+                            window.ethereum.on('accountsChanged', handleAccountsChanged);
+                            window.ethereum.on('chainChanged', () => window.location.reload());
+                        } else {
+                            addDebugMessage('No accounts found', 'error');
+                            showNotification('No wallet accounts found', 'error');
+                        }
+                    } catch (error) {
+                        console.error("User denied account access:", error);
+                        addDebugMessage("User denied account access", 'error');
+                        showNotification('Wallet access denied', 'error');
+                    }
+                } else {
+                    addDebugMessage('MetaMask is not installed!', 'error');
+                    showNotification('Please install MetaMask or another Web3 wallet', 'error');
+                }
+            } catch (error) {
+                addDebugMessage(`Connection error: ${error.message}`, 'error');
+                showNotification('Failed to connect wallet', 'error');
+            } finally {
+                isLoading = false;
+                connectWalletBtn.innerHTML = `<i class="fas fa-wallet"></i> Connect Wallet`;
+                updateUIState();
+            }
+        }
+
+        function handleAccountsChanged(accounts) {
+            if (accounts.length > 0) {
+                account = accounts[0];
+                addDebugMessage(`Account changed to: ${truncateAddress(account)}`, 'info');
+                updateUIState();
+            } else {
+                account = '';
+                contract = null;
+                addDebugMessage('Wallet disconnected', 'info');
+                updateUIState();
+            }
+        }
+
+        function initializeContract() {
+            try {
+                contract = new ethers.Contract(contractAddress, contractAbi, signer);
+                currentContractAddress.textContent = contractAddress;
+                contractAddressInput.value = contractAddress;
+                addDebugMessage(`Contract initialized at: ${truncateAddress(contractAddress)}`, 'success');
+                fetchProducts();
+            } catch (error) {
+                addDebugMessage(`Contract initialization error: ${error.message}`, 'error');
+                contract = null;
+            }
+            updateUIState();
+        }
+
+        async function setContractAddress() {
+            const newAddress = contractAddressInput.value.trim();
+            
+            if (ethers.utils.isAddress(newAddress)) {
+                contractAddress = newAddress;
+                currentContractAddress.textContent = contractAddress;
+                addDebugMessage(`Contract address updated to: ${truncateAddress(contractAddress)}`, 'info');
+                
+                if (account) {
+                    initializeContract();
+                }
+            } else {
+                addDebugMessage('Invalid Ethereum address format', 'error');
+                showNotification('Please enter a valid Ethereum address', 'error');
+            }
+        }
+
+        // Fixed verifyContract function - sử dụng owner() thay vì getOwner()
+        async function verifyContract() {
+            try {
+                verifyContractBtn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Verifying...`;
+                verifyContractBtn.disabled = true;
+                
+                // Sử dụng owner() thay vì getOwner()
+                const owner = await contract.owner();
+                const isOwner = owner.toLowerCase() === account.toLowerCase();
+                
+                if (isOwner) {
+                    addDebugMessage('Contract verified! You are the owner.', 'success');
+                    showNotification('Contract verified successfully', 'success');
+                } else {
+                    addDebugMessage(`Contract verified, but you are not the owner. Owner is: ${truncateAddress(owner)}`, 'info');
+                    showNotification('Contract verified, but you are not the owner', 'warning');
+                }
+            } catch (error) {
+                addDebugMessage(`Contract verification failed: ${error.message}`, 'error');
+                showNotification('Contract verification failed', 'error');
+            } finally {
+                verifyContractBtn.innerHTML = `<i class="fas fa-check-circle"></i> Verify`;
+                verifyContractBtn.disabled = false;
+            }
+        }
+
+        async function addManager() {
+            const supplierAddress = newManagerInput.value.trim();
+    
+            if (!ethers.utils.isAddress(supplierAddress)) {
+                addDebugMessage('Invalid supplier address format', 'error');
+                showNotification('Please enter a valid Ethereum address', 'error');
+                return;
+            }
+            
+            try {
+                addManagerBtn.innerHTML = `<i class="fas fa-spinner animate-spin"></i> Processing...`;
+                addManagerBtn.disabled = true;
+                
+                const tx = await contract.addManager(supplierAddress);
+                addDebugMessage(`Transaction submitted: ${tx.hash}`, 'info');
+                
+                await tx.wait();
+                
+                addDebugMessage(`Supplier added successfully: ${truncateAddress(supplierAddress)}`, 'success');
+                showNotification('Supplier added successfully', 'success');
+                newManagerInput.value = '';
+                
+                // Tự động refresh danh sách suppliers
+                await fetchManagers();
+                
+            } catch (error) {
+                addDebugMessage(`Failed to add supplier: ${error.message}`, 'error');
+                showNotification('Failed to add supplier', 'error');
+            } finally {
+                addManagerBtn.innerHTML = `<i class="fas fa-plus"></i> Add Supplier`;
+                addManagerBtn.disabled = false;
+            }
+        }
+
+        async function removeManager(address) {
+            if (!contract || !account) return;
+
+            const confirmDelete = confirm(`Are you sure you want to remove supplier: ${address}?`);
+            if (!confirmDelete) return;
+
+            try {
+                addDebugMessage(`Removing supplier ${address}...`, 'info');
+                const tx = await contract.removeManager(address);
+                await tx.wait();
+
+                addDebugMessage(`Supplier ${address} removed successfully.`, 'success');
+                await fetchManagers();
+            } catch (error) {
+                addDebugMessage(`Failed to remove supplier: ${error.message}`, 'error');
+                alert('Failed to remove supplier. See debug for details.');
+            }
+        }
+
+        // Fixed fetchProducts - không có getAllProducts() trong ABI
+        async function fetchProducts() {
+            if (!contract) return;
+    
+            try {
+                productsLoading.style.display = 'flex';
+                productsTableContainer.style.display = 'none';
+                productsEmptyMessage.style.display = 'none';
+                
+                const allProducts = [];
+                
+                // Lấy products từ tất cả suppliers đã biết
+                for (const supplierAddress of knownSuppliers) {
+                    try {
+                        const products = await contract.getSupplierProducts(supplierAddress);
+                        products.forEach(product => {
+                            allProducts.push({
+                                name: product.name,
+                                unitPrice: product.unitPrice,
+                                stock: product.stock,
+                                supplier: supplierAddress
+                            });
+                        });
+                    } catch (error) {
+                        console.log(`Could not fetch products for supplier ${supplierAddress}`);
+                    }
+                }
+                
+                addDebugMessage(`Found ${allProducts.length} products from ${knownSuppliers.size} suppliers`, 'success');
+                updateProductsUI(allProducts);
+                
+            } catch (error) {
+                addDebugMessage(`Failed to fetch products: ${error.message}`, 'error');
+                productsEmptyMessage.textContent = 'Error loading products. Please try again.';
+                productsEmptyMessage.style.display = 'block';
+            } finally {
+                productsLoading.style.display = 'none';
+            }
+        }
+
+        function updateManagersUI(managers) {
+            managersTableBody.innerHTML = '';
+
+            if (managers.length === 0) {
+                managersTableContainer.style.display = 'none';
+                managersEmptyMessage.textContent = account && contract ? 
+                    'No suppliers found. Add your first supplier to start.' : 
+                    (account ? 'Connect to a valid contract to view suppliers.' : 'Connect your wallet to view suppliers.');
+                managersEmptyMessage.style.display = 'block';
+                return;
+            }
+
+            managersEmptyMessage.style.display = 'none';
+            managersTableContainer.style.display = 'block';
+
+            managers.forEach((manager) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="manager-badge">${truncateAddress(manager.address)}</span></td>
+                    <td><span class="status-badge ${manager.isActive ? 'status-active' : 'status-inactive'}">${manager.isActive ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="custom-remove-btn" onclick="removeManager('${manager.address}')">
+                            <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                    </td>
+                `;
+                managersTableBody.appendChild(row);
+            });
+        }
+
+        // Fixed fetchManagers - không có getAllManagers() trong ABI
+        async function fetchManagers() {
+            if (!contract) return;
+
+    try {
+        managersLoading.style.display = 'flex';
+        managersTableContainer.style.display = 'none';
+        managersEmptyMessage.style.display = 'none';
+
+        // Lấy events ManagerAdded từ contract
+        const filter = contract.filters.ManagerAdded();
+        const addedEvents = await contract.queryFilter(filter, 0, 'latest');
+        
+        // Lấy events ManagerRemoved từ contract  
+        const removeFilter = contract.filters.ManagerRemoved();
+        const removedEvents = await contract.queryFilter(removeFilter, 0, 'latest');
+        
+        // Tạo Set các addresses đã bị remove
+        const removedAddresses = new Set(removedEvents.map(event => event.args.account));
+        
+        // Lọc các managers còn active
+        const activeManagers = [];
+        for (const event of addedEvents) {
+            const address = event.args.account;
+            if (!removedAddresses.has(address)) {
+                // Verify manager vẫn còn active bằng cách gọi isManager
+                try {
+                    const isActive = await contract.isManager(address);
+                    if (isActive) {
+                        activeManagers.push({
+                            address: address,
+                            isActive: true
+                        });
+                        knownSuppliers.add(address);
+                    }
+                } catch (error) {
+                    console.log(`Could not verify manager status for ${address}`);
+                }
+            }
+        }
+
+        addDebugMessage(`Found ${activeManagers.length} active suppliers`, 'success');
+        updateManagersUI(activeManagers);
+        
+    } catch (error) {
+        addDebugMessage(`Failed to fetch suppliers: ${error.message}`, 'error');
+        managersEmptyMessage.textContent = 'Error loading suppliers. Please try again.';
+        managersEmptyMessage.style.display = 'block';
+    } finally {
+        managersLoading.style.display = 'none';
+    }
+}
+
+
+        // Event Listeners
+        connectWalletBtn.addEventListener('click', connectWallet);
+        setAddressBtn.addEventListener('click', setContractAddress);
+        verifyContractBtn.addEventListener('click', verifyContract);
+        addManagerBtn.addEventListener('click', addManager);
+        refreshProductsBtn.addEventListener('click', fetchProducts);
+        refreshManagersBtn.addEventListener('click', fetchManagers);
+
+        // Initialize UI
+        updateUIState();
+        contractAddressInput.value = contractAddress;
+        currentContractAddress.textContent = contractAddress;
+
+        // Setup contract if MetaMask is already connected
+        if (window.ethereum && window.ethereum.selectedAddress) {
+            connectWallet();
+        }
+</script>
+</body>
+</html>
